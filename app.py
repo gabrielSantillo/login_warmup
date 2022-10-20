@@ -16,7 +16,7 @@ def post_client():
 
     results_client = run_statement('CALL get_client(?,?)', [request.json.get('email'), request.json.get('password')])
 
-    if(len(results_client) > 0):
+    if(type(results_client) == list and len(results_client) == 1):
         results = run_statement('CALL login_client(?,?)', [results_client[0][0], secrets.token_hex(nbytes=None)])
         if(type(results) == list):
             return make_response(json.dumps(results, default=str), 200)
