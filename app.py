@@ -1,4 +1,4 @@
-from tabnanny import check
+import secrets
 from flask import Flask, request, make_response
 from dbhelpers import run_statement
 from apihelpers import check_endpoint_info
@@ -7,6 +7,23 @@ import json
 
 # calling the Flask function which will return a value that I will be used for my API
 app = Flask(__name__)
+
+@app.post('/api/client')
+def post_client():
+    is_valid = check_endpoint_info(request.json, ['email', 'password'])
+    if(is_valid != None):
+        return make_response(json.dumps(is_valid, default=str), 400)
+
+    results_client = run_statement('CALL get_client(?,?)', [request.json.get('email'), request.json.get('password')])
+
+    if(type(results_client) == list):
+        results = run_statement('CALL login_client(?,?)', [results_client[0][0], secrets.token_hex(nbytes=None)])
+        if(type(results) == list):
+            return make_response(json.dumps(results, default=str), 200)
+        else:
+            return make_response(json.dumps('Sorry, an error has occurred.', default=str), 500)
+    else:
+        return make_response(json.dumps("Sorry, an error has occurred", default=str), 500)
 
 # if statement to check if the production_mode variable is true, if yes, run in production mode, if not, run in testing mode
 if (production_mode):
