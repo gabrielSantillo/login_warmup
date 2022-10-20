@@ -17,13 +17,14 @@ def post_client():
     results_client = run_statement('CALL get_client(?,?)', [request.json.get('email'), request.json.get('password')])
 
     if(type(results_client) == list and len(results_client) == 1):
-        results = run_statement('CALL login_client(?,?)', [results_client[0][0], secrets.token_hex(nbytes=None)])
-        if(type(results) == list):
-            return make_response(json.dumps(results, default=str), 200)
+        token = secrets.token_hex(nbytes=None)
+        results = run_statement('CALL login_client(?,?)', [results_client[0][0], token])
+        if(type(results) == list and results[0][0] == 1):
+            return make_response(json.dumps(token, default=str), 200)
         else:
             return make_response(json.dumps('Sorry, an error has occurred.', default=str), 500)
     else:
-        return make_response(json.dumps("Sorry, an error has occurred", default=str), 500)
+        return make_response(json.dumps(results_client, default=str), 400)
 
 # if statement to check if the production_mode variable is true, if yes, run in production mode, if not, run in testing mode
 if (production_mode):
